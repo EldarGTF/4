@@ -1,0 +1,110 @@
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+// Структура для персонажей
+struct Character {
+    string name;
+    int health;
+    int attack;
+    int defence;
+
+    // Атака цели с учетом защиты
+    void attackTarget(Character &target) {
+        int damage = attack - target.defence;
+        if (damage < 0) damage = 0;
+        cout << name << " атакует " << target.name << " и наносит " << damage << " урона.\n";
+        target.health -= damage;
+        if (target.health < 0) target.health = 0;
+    }
+};
+
+// Функция для отображения состояния боя
+void printStatus(const Character &hero, const Character &monster) {
+    cout << "\n--- Статус сражения ---\n";
+    cout << hero.name << " (Здоровье: " << hero.health << ", Защита: " << hero.defence << ")\n";
+    cout << monster.name << " (Здоровье: " << monster.health << ", Защита: " << monster.defence << ")\n";
+    cout << "-------------------------\n";
+}
+
+// Очистка экрана
+void clearScreen() {
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+// Проверка корректности ввода
+int getValidInput(int min, int max) {
+    int choice;
+    while (true) {
+        cin >> choice;
+        if (cin.fail() || choice < min || choice > max) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "Некорректный ввод. Попробуйте снова: ";
+        } else {
+            break;
+        }
+    }
+    return choice;
+}
+
+// Основной игровой цикл
+void battle() {
+    // Инициализация персонажей
+    Character hero = {"Герой", 100, 20, 5};
+    Character monster = {"Монстр", 80, 15, 3};
+
+    while (hero.health > 0 && monster.health > 0) {
+        clearScreen();
+        printStatus(hero, monster);
+
+        // Ход героя
+        cout << "Ваш ход:\n1. Атаковать\n2. Пропустить ход\nВыбор: ";
+        int choice = getValidInput(1, 2);
+        if (choice == 1) {
+            hero.attackTarget(monster);
+        } else {
+            cout << hero.name << " пропускает ход.\n";
+        }
+
+        // Проверка состояния монстра
+        if (monster.health <= 0) break;
+
+        // Ход монстра (случайный выбор)
+        if (rand() % 2 == 0) {
+            monster.attackTarget(hero);
+        } else {
+            cout << monster.name << " пропускает ход.\n";
+        }
+    }
+
+    // Результат боя
+    clearScreen();
+    printStatus(hero, monster);
+    if (hero.health > 0) {
+        cout << "🎉 Победа! Герой одолел монстра.\n";
+    } else {
+        cout << "💀 Поражение... Монстр оказался сильнее.\n";
+    }
+}
+
+int main() {
+    srand(time(0));
+    char playAgain;
+
+    do {
+        battle();
+        cout << "Хотите сыграть еще раз? (y/n): ";
+        cin >> playAgain;
+    } while (playAgain == 'y');
+
+    cout << "Спасибо за игру!\n";
+    return 0;
+}
