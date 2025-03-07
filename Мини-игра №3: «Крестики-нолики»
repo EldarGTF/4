@@ -1,0 +1,123 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+// Функция для отображения игрового поля
+void printField(const vector<char>& field) {
+    system("cls"); // Очистка экрана для Windows, используйте system("clear") для Unix/Linux
+    cout << " " << field[0] << " | " << field[1] << " | " << field[2] << "\n";
+    cout << "---|---|---\n";
+    cout << " " << field[3] << " | " << field[4] << " | " << field[5] << "\n";
+    cout << "---|---|---\n";
+    cout << " " << field[6] << " | " << field[7] << " | " << field[8] << "\n";
+}
+
+// Функция для проверки победы
+bool checkWin(const vector<char>& field, char player) {
+    const int winCombos[8][3] = {
+        {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // строки
+        {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, // столбцы
+        {0, 4, 8}, {2, 4, 6}             // диагонали
+    };
+
+    for (const auto& combo : winCombos) {
+        if (field[combo[0]] == player && field[combo[1]] == player && field[combo[2]] == player) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Функция для проверки ничьи
+bool checkDraw(const vector<char>& field) {
+    for (char cell : field) {
+        if (cell != 'X' && cell != 'O') {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Функция для получения корректного ввода от пользователя
+int getValidInput(const vector<char>& field) {
+    int cell;
+    while (true) {
+        cout << "Введите номер ячейки (1-9): ";
+        cin >> cell;
+
+        if (cin.fail() || cell < 1 || cell > 9 || field[cell - 1] == 'X' || field[cell - 1] == 'O') {
+            cin.clear(); // Сброс ошибки потока
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера ввода
+            cout << "Некорректный ввод. Попробуйте снова.\n";
+        } else {
+            break;
+        }
+    }
+    return cell - 1;
+}
+
+// Функция для случайного хода компьютера
+int getComputerMove(const vector<char>& field) {
+    int move;
+    do {
+        move = rand() % 9; // случайное число от 0 до 8
+    } while (field[move] == 'X' || field[move] == 'O'); // проверка, что клетка свободна
+    return move;
+}
+
+int main() {
+    srand(static_cast<unsigned>(time(0))); // Инициализация генератора случайных чисел
+
+    char playAgain;
+    do {
+        vector<char> field = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+        char currentPlayer = 'X';
+        bool gameOver = false;
+
+        int gameMode;
+        cout << "Выберите режим игры:\n1. Человек против человека\n2. Человек против компьютера\n";
+        cin >> gameMode;
+
+        while (gameMode != 1 && gameMode != 2) {
+            cout << "Некорректный выбор. Попробуйте снова: ";
+            cin >> gameMode;
+        }
+
+        while (!gameOver) {
+            printField(field);
+
+            int move;
+            if (gameMode == 2 && currentPlayer == 'O') { // Ход компьютера
+                move = getComputerMove(field);
+                cout << "Компьютер сделал ход в ячейку " << move + 1 << ".\n";
+            } else { // Ход человека
+                cout << "Ход игрока " << currentPlayer << ":\n";
+                move = getValidInput(field);
+            }
+
+            field[move] = currentPlayer;
+
+            if (checkWin(field, currentPlayer)) {
+                printField(field);
+                cout << "Игрок " << currentPlayer << " победил!\n";
+                gameOver = true;
+            } else if (checkDraw(field)) {
+                printField(field);
+                cout << "Ничья!\n";
+                gameOver = true;
+            } else {
+                currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+            }
+        }
+
+        cout << "Хотите сыграть ещё раз? (y/n): ";
+        cin >> playAgain;
+
+    } while (playAgain == 'y' || playAgain == 'Y');
+
+    return 0;
+}
